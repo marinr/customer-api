@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Customer CRUD API
+
+Parameters:
+  Environment:
+    Default: 'Dev'
+    Type: String
+  TableName:
+    Default: 'CustomerTable'
+    Type: String
+
+Resources:
+  CustomerTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: !Sub ${TableName}-${Environment}
+      PrimaryKey:
+         Name: id
+         Type: String
+
+  CustomerApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: Customer CRUD API
+      StageName: !Ref Environment
+  
+  GetCustomerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs16.x
+      CodeUri: get_customer_lambda/src
+      Policies:
+        DynamoDBReadPolicy:
+          TableName: !Ref CustomerTable
+      Environment:
+        Variables:
+          TABLE_NAME: !Sub ${TableName}-${Environment}
+      Events:
+        PostResource:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CustomerApiGateway
+            Path: /customer/{id}
+            Method: get
+
+  PostCustomerFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        Handler: index.handler
+        Runtime: nodejs16.x
+        CodeUri: create_customer_lambda/src
+        Policies:
+          DynamoDBWritePolicy:
+            TableName: !Ref CustomerTable
+        Environment:
+          Variables:
+            TABLE_NAME: !Sub ${TableName}-${Environment}
+        Events:
+          PostResource:
+            Type: Api
+            Properties:
+              RestApiId: !Ref CustomerApiGateway
+              Path: /customer
+              Method: post
+
+Outputs:
+  CustomerApiGateway:
+    Description: 'Customer CRUD API'
+    Value: !Sub 'https://${CustomerApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/customer'
