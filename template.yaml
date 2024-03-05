@@ -29,7 +29,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
-      Runtime: nodejs18.x
+      Runtime: nodejs16.x
       CodeUri: get_customer_lambda/src
       Policies:
         DynamoDBReadPolicy:
@@ -49,7 +49,7 @@ Resources:
       Type: AWS::Serverless::Function
       Properties:
         Handler: index.handler
-        Runtime: nodejs18.x
+        Runtime: nodejs16.x
         CodeUri: create_customer_lambda/src
         Policies:
           DynamoDBWritePolicy:
