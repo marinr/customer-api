@@ -1,41 +1,45 @@
-const crypto = require("crypto");
-var AWS = require('aws-sdk');
-var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
+import { randomBytes } from "crypto";
+import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { marshall } from "@aws-sdk/util-dynamodb";
+
+const client = new DynamoDBClient({});
 const tableName = process.env.TABLE_NAME;
 
-exports.handler = async (event) => {
-  let id = crypto.randomBytes(20).toString('hex');
+export const handler = async (event) => {
+  let id = randomBytes(20).toString('hex');
   console.log(JSON.stringify(event));
   let body = JSON.parse(event.body);
-  var params = {
+  
+  const params = {
     TableName: tableName,
-    Item: {
-      'id' : {S: id},
-      'name' : {S: body.name},
-      'lastName' : {S: body.lastName},
-    }
+    Item: marshall({
+      id: id,
+      name: body.name,
+      lastName: body.lastName
+    })
   };
 
   try {
-    let result = await ddb.putItem(params).promise();
+    const command = new PutItemCommand(params);
+    const result = await client.send(command);
     console.log(result);
-    const response = {
-        statusCode: 200,
-        body: JSON.stringify({
-          msg: "OK",
-          userId: id, 
-          description: "User created successfully"
-        })
-      };
-    return response;
+    
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        msg: "OK",
+        userId: id, 
+        description: "User created successfully"
+      })
+    };
   } catch (error) {
-    const response = {
+    console.error("Error:", error);
+    return {
       statusCode: 500,
       body: JSON.stringify({
         msg: "NOK",
-        errorMsg: error,
+        errorMsg: error.message,
       })
     };
-   return response;
   }
- };
+};

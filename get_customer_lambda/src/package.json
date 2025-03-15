@@ -1,0 +1,11 @@
+{
+  "name": "get-customer-lambda",
+  "version": "1.0.0",
+  "description": "Lambda function for retrieving customers",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.515.0",
+    "@aws-sdk/util-dynamodb": "^3.515.0"
+  }
+}
